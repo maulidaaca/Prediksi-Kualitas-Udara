@@ -73,8 +73,8 @@ with st.sidebar:
     st.markdown("""
     <div class="student-card">
         <b>Dibuat Oleh:</b><br>
-        👨‍🎓 Nama Mahasiswa<br>
-        🆔 NIM: 12345678<br>
+        👨‍🎓 Maulida Nabila<br>
+        🆔 NIM: 220401061<br>
         🏫 Teknik Informatika
     </div>
     """, unsafe_allow_html=True)
@@ -181,4 +181,5 @@ if analyze_btn:
 
         except ValueError:
             st.error("❌ Format Salah: Pastikan input hanya berupa angka dan koma.")
+
 
