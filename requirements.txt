@@ -1,6 +1,6 @@
-flask
+streamlit
 tensorflow
-scikit-learn
 numpy
 joblib
+scikit-learn
 pandas
