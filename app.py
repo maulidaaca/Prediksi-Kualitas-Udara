@@ -178,15 +178,7 @@ if analyze_btn:
                         else:
                             st.error("**Status: BERBAHAYA** ☠️")
 
-                # Expander Detail Teknis
-                with st.expander("🔍 Lihat Detail Teknis (JSON)"):
-                    st.json({
-                        "model_type": "LSTM Sequential",
-                        "input_shape": "(1, 7, 1)",
-                        "prediction_raw": float(prediction[0][0]),
-                        "final_aqi": final_aqi,
-                        "history_data": data_list
-                    })
 
         except ValueError:
             st.error("❌ Format Salah: Pastikan input hanya berupa angka dan koma.")
+
