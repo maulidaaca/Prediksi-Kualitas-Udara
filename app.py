@@ -1,42 +1,41 @@
 import streamlit as st
 import numpy as np
-import pandas as pd  # PENTING: Untuk membuat grafik
 import tensorflow as tf
 import joblib
 import random
 
 # ==========================================
-# 1. KONFIGURASI HALAMAN & DESAIN
+# 1. KONFIGURASI HALAMAN
 # ==========================================
 st.set_page_config(
-    page_title="AQI Forecaster Pro",
+    page_title="AQI Prediksi",
     page_icon="☁️",
-    layout="wide"  # Menggunakan layout lebar agar grafik lega
+    layout="centered" # Kita pakai layout tengah biar fokus
 )
 
-# CSS Custom: Memberikan background gradient & kartu identitas
+# CSS Custom: Background & Desain Kartu
 st.markdown("""
     <style>
-    /* Background Gradient Halus (Biru Muda ke Putih) */
+    /* Background Gradient Halus */
     .stApp {
-        background: linear-gradient(to bottom, #f0f8ff, #ffffff);
+        background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
     }
     
-    /* Mempercantik Metrics (Angka Hasil) */
+    /* Mempercantik Angka Hasil (Metrics) */
     div[data-testid="stMetricValue"] {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: bold;
-        color: #2c3e50;
+        color: #007bff;
     }
     
-    /* Kartu Identitas di Sidebar */
+    /* Kartu Identitas Sidebar */
     .student-card {
         padding: 15px;
         background-color: white;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         margin-bottom: 20px;
-        border-left: 5px solid #4e54c8;
+        border-left: 5px solid #007bff;
         font-size: 14px;
     }
     
@@ -55,7 +54,6 @@ st.markdown("""
 @st.cache_resource
 def load_resources():
     try:
-        # Ganti nama file sesuai file Anda
         model = tf.keras.models.load_model('model_aqi_7days.h5', compile=False)
         scaler = joblib.load('scaler_aqi_7days.save')
         return model, scaler
@@ -65,13 +63,13 @@ def load_resources():
 model, scaler = load_resources()
 
 # ==========================================
-# 3. SIDEBAR (IDENTITAS MAHASISWA)
+# 3. SIDEBAR (IDENTITAS)
 # ==========================================
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2011/2011601.png", width=80)
-    st.title("🎛️ Control Panel")
+    st.image("https://cdn-icons-png.flaticon.com/512/2910/2910202.png", width=80)
+    st.title("Panel Kontrol")
     
-    # --- AREA IDENTITAS (Edit Bagian Ini) ---
+    # --- AREA IDENTITAS ---
     st.markdown("""
     <div class="student-card">
         <b>Dibuat Oleh:</b><br>
@@ -81,153 +79,114 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    st.info("**Info Model:**\nLSTM (Long Short-Term Memory) dengan Window Size 7 Hari.")
+    st.info("Aplikasi ini menggunakan model **LSTM** untuk memprediksi Indeks Kualitas Udara (AQI) berdasarkan tren 7 hari terakhir.")
     
-    if st.button("🔄 Reset / Bersihkan"):
+    if st.button("🔄 Reset Form"):
         st.session_state.clear()
         st.rerun()
 
 # ==========================================
-# 4. JUDUL UTAMA
+# 4. AREA UTAMA
 # ==========================================
-st.markdown("<h1 style='text-align: center; color: #4e54c8;'>☁️ Prediksi Kualitas Udara (AQI)</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Dashboard Monitoring & Forecasting Berbasis Deep Learning</p>", unsafe_allow_html=True)
-st.write("---")
+st.title("☁️ Prediksi Kualitas Udara")
+st.write("Masukkan data pemantauan udara 7 hari terakhir untuk mengetahui prediksi besok.")
 
-# Cek apakah model berhasil di-load
 if model is None:
-    st.error("⚠️ **FILE HILANG:** Pastikan 'model_aqi_7days.h5' dan 'scaler_aqi_7days.save' ada di folder yang sama!")
+    st.error("⚠️ File Model tidak ditemukan! Pastikan file .h5 dan .save sudah diupload.")
     st.stop()
 
-# ==========================================
-# 5. AREA INPUT & VISUALISASI (LAYOUT 2 KOLOM)
-# ==========================================
-col_left, col_right = st.columns([1, 1.5]) # Kiri lebih kecil, Kanan (Grafik) lebih besar
-
-# --- Session State untuk menyimpan input ---
+# --- INPUT SECTION ---
 if 'input_text' not in st.session_state:
     st.session_state.input_text = ""
 
-with col_left:
-    st.subheader("1️⃣ Input Data Historis")
-    st.caption("Masukkan 7 data AQI terakhir:")
-    
-    # Tombol Dadu (Isi Otomatis)
-    if st.button("🎲 Isi Random (Demo)"):
-        # Membuat pola angka naik turun agar grafik terlihat bagus
-        start = random.randint(50, 100)
-        pola = [start]
-        for _ in range(6):
-            # Angka selanjutnya naik/turun sedikit dari angka sebelumnya
-            next_val = pola[-1] + random.randint(-15, 20)
-            if next_val < 10: next_val = 20
-            pola.append(next_val)
-            
-        st.session_state.input_text = ", ".join(map(str, pola))
-        st.rerun() # Refresh agar grafik langsung muncul
+# Tombol isi otomatis (Biar gampang demo)
+col_label, col_rand = st.columns([3, 1])
+with col_label:
+    st.subheader("📋 Input Data Historis")
+with col_rand:
+    st.write("") # Spacer
+    if st.button("🎲 Isi Demo"):
+        # Generate angka acak
+        vals = [random.randint(60, 110) for _ in range(7)]
+        st.session_state.input_text = ", ".join(map(str, vals))
+        st.rerun()
 
-    # Text Area Input
-    input_str = st.text_area(
-        "Format: angka, angka, ...",
-        value=st.session_state.input_text,
-        height=150,
-        placeholder="Contoh: 80, 85, 90, 88, 92, 95, 100"
-    )
+input_str = st.text_area(
+    "Masukkan 7 nilai AQI dipisahkan koma:",
+    value=st.session_state.input_text,
+    height=100,
+    placeholder="Contoh: 80, 85, 90, 88, 92, 95, 100"
+)
 
-with col_right:
-    st.subheader("2️⃣ Grafik Tren Data")
-    
-    # Logika Menampilkan Grafik Secara Realtime
-    if input_str:
-        try:
-            # Mengubah string input menjadi list angka
-            data_list = [float(x.strip()) for x in input_str.split(',')]
-            
-            if len(data_list) > 0:
-                # Membuat DataFrame agar bisa dibaca st.line_chart
-                chart_data = pd.DataFrame({
-                    'Hari ke-': range(1, len(data_list)+1),
-                    'Nilai AQI': data_list
-                }).set_index('Hari ke-')
-                
-                # Menampilkan Grafik Garis
-                st.line_chart(chart_data, color="#4e54c8")
-            else:
-                st.warning("Data kosong.")
-        except:
-            st.warning("Menunggu input angka yang valid...")
-    else:
-        # Tampilan kosong (Placeholder) jika belum ada input
-        st.info("👈 Masukkan data atau klik 'Isi Random' untuk melihat grafik tren udara.")
+# Tombol Prediksi
+analyze_btn = st.button("🚀 PREDIKSI SEKARANG", type="primary", use_container_width=True)
 
 # ==========================================
-# 6. TOMBOL & PROSES PREDIKSI
+# 5. LOGIKA PREDIKSI & HASIL
 # ==========================================
-st.write("")
-analyze_btn = st.button("🚀 ANALISIS & PREDIKSI MASA DEPAN", type="primary", use_container_width=True)
-
 if analyze_btn:
     if not input_str:
-        st.toast("⚠️ Data input masih kosong!", icon="❌")
+        st.warning("⚠️ Mohon isi data terlebih dahulu.")
     else:
         try:
-            # 1. Parsing Data
+            # Parsing Data
             data_list = [float(x.strip()) for x in input_str.split(',')]
             
-            # 2. Validasi Jumlah (Harus 7)
+            # Validasi Jumlah Data
             if len(data_list) != 7:
                 st.error(f"❌ Data harus berjumlah 7 hari! (Anda memasukkan {len(data_list)} data)")
             else:
-                with st.spinner('Sedang memproses algoritma LSTM...'):
-                    # 3. Preprocessing (Reshape & Scale)
+                with st.spinner('Sedang menghitung...'):
+                    # Preprocessing
                     features = np.array(data_list).reshape(-1, 1)
                     scaled_features = scaler.transform(features)
                     final_input = np.reshape(scaled_features, (1, 7, 1))
                     
-                    # 4. Prediksi
+                    # Prediksi
                     prediction = model.predict(final_input)
                     result = scaler.inverse_transform(prediction)
                     final_aqi = float(result[0][0])
                     
-                    # Hitung selisih dengan hari terakhir
+                    # Hitung Delta (Selisih)
                     last_aqi = data_list[-1]
                     delta = final_aqi - last_aqi
 
-                # 5. MENAMPILKAN HASIL (METRICS)
-                st.success("✅ Prediksi Selesai!")
+                # TAMPILKAN HASIL
+                st.write("---")
+                st.success("✅ Analisis Selesai!")
                 
+                # Menggunakan Container biar rapi
                 with st.container():
-                    # Membagi hasil menjadi 3 kolom
-                    m1, m2, m3 = st.columns(3)
+                    c1, c2, c3 = st.columns(3)
                     
-                    with m1:
-                        st.metric("AQI Hari Ini (Terakhir)", f"{last_aqi:.0f}")
+                    with c1:
+                        st.metric("Hari Ini", f"{last_aqi:.0f}")
                         
-                    with m2:
-                        # Menampilkan Prediksi dengan panah Delta (Hijau/Merah otomatis)
-                        st.metric("Prediksi Esok", f"{final_aqi:.2f}", delta=f"{delta:.2f} poin")
+                    with c2:
+                        # Delta color otomatis hijau jika turun, merah jika naik (inverse)
+                        # Tapi default streamlit: Hijau = Naik. Jadi kita biarkan default saja untuk menunjukkan kenaikan angka.
+                        st.metric("Prediksi Besok", f"{final_aqi:.2f}", delta=f"{delta:.2f}")
                         
-                    with m3:
-                        # Logika Status Warna-Warni
+                    with c3:
+                        # Logic Status & Warna
                         if final_aqi <= 50:
-                            st.success("**Status: BAIK (Good)** 🍃")
+                            st.success("**Status: BAIK** 🍃")
                         elif final_aqi <= 100:
-                            st.warning("**Status: SEDANG (Moderate)** 🙂")
+                            st.warning("**Status: SEDANG** 🙂")
                         elif final_aqi <= 150:
                             st.warning("**Status: TIDAK SEHAT** 😷")
                         else:
-                            st.error("**Status: BERBAHAYA!** ☠️")
+                            st.error("**Status: BERBAHAYA** ☠️")
 
-                # 6. FITUR TAMBAHAN: DETAIL TEKNIS (Expandable)
-                # Dosen suka ini karena menunjukkan "Isi Jeroan" aplikasi
-                with st.expander("🔍 Lihat Detail Teknis (JSON Output)"):
-                    st.write("Data ini diproses langsung dari output model:")
+                # Expander Detail Teknis
+                with st.expander("🔍 Lihat Detail Teknis (JSON)"):
                     st.json({
+                        "model_type": "LSTM Sequential",
                         "input_shape": "(1, 7, 1)",
-                        "raw_prediction_scaled": float(prediction[0][0]),
+                        "prediction_raw": float(prediction[0][0]),
                         "final_aqi": final_aqi,
-                        "data_historis": data_list
+                        "history_data": data_list
                     })
 
         except ValueError:
-            st.error("❌ Format Error: Pastikan input hanya berupa angka dan koma.")
+            st.error("❌ Format Salah: Pastikan input hanya berupa angka dan koma.")
